@@ -16,12 +16,27 @@ struct PlayData: Codable, Equatable {
     let distance: Int
     let startLine: Int
     let endLine: Int
+    let gain: Int
     let series: Int
     let flagged: Bool
+    let id: Int
     
     func name() -> String {
-        return "Q\(quarter)_\(odk)_D\(down != nil ? String(down!) : "-")_\(startLine)~\(endLine)_S\(series)\(flagged ? "FLAGGED" : "")"
+        // Q1_S1_K_D1_0~0_G-50FLAGGED
+        return "Q\(quarter)_S\(odk == "K" ? "-" : String(series))_\(odk)_D\(down != nil ? String(down!) + "&\(distance)" : "-")_\(startLine)~\(endLine)_G\(gain)_\(flagged ? "FLAGGED" : "")"
+//        return "Q\(quarter)_\(odk)_D\(down != nil ? String(down!) : "-")_\(startLine)~\(endLine)_S\(series)\(flagged ? "FLAGGED" : "")"
     }
+    
+//    func gain() -> Int {
+//        if (startLine < 0 && endLine < 0) || (startLine >= 0 && endLine >= 0) {
+//            return startLine - endLine
+//        }
+//        if startLine < 0 {
+//            return startLine - endLine + 110
+//        }
+//
+//        return startLine - endLine - 110
+//    }
     
     
     struct PlayPhoto: Codable {

@@ -26,6 +26,9 @@ extension View {
 
 extension Int {
     func fancy() -> String {
+        if self == 0 {
+            return "0"
+        }
         if self % 10 == 1 {
             return "\(self)st"
         }

@@ -18,7 +18,18 @@ struct Play {
     var flagged: Bool
     
     func toPlayData() -> PlayData {
-        return PlayData(quarter: quarter, odk: odk, down: down == -1 ? nil : down, distance: distance, startLine: startLine, endLine: endLine, series: series, flagged: flagged)
+        return PlayData(quarter: quarter, odk: odk, down: down == -1 ? nil : down, distance: distance, startLine: startLine, endLine: endLine, gain: gain(), series: series, flagged: flagged, id: 0)
+    }
+    
+    func gain() -> Int {
+        if (startLine < 0 && endLine < 0) || (startLine >= 0 && endLine >= 0) {
+            return startLine - endLine
+        }
+        if startLine < 0 {
+            return startLine - endLine + 110
+        }
+        
+        return startLine - endLine - 110
     }
     
     func modify(

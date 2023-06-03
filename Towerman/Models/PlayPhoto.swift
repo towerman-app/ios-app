@@ -27,8 +27,10 @@ struct PlayPhoto: Identifiable {
         return nil
 #endif
         
-//        let id = Int(name.components(separatedBy: "-").last!)
-//        guard let id = id else { return nil }
+        // Q1, S1, K, D1&10, 0~0, G-50, FLAGGED#1-0
+        
+        let id = Int(name.components(separatedBy: "-").last!)
+        guard let id = id else { return nil }
         
         let idx = Int(name.components(separatedBy: "#").last!.components(separatedBy: "-")[0])
         guard let idx = idx else { return nil }
@@ -39,20 +41,23 @@ struct PlayPhoto: Identifiable {
         let quarter = Int(parts[0].suffix(1))
         guard let quarter = quarter else { return nil }
         
-        let odk = parts[1]
-        let down = (parts[2] == "D-" ? nil : Int(parts[2].suffix(1)))
-        guard let down = down else { return nil }
-        
-        let startLine = Int(parts[3].components(separatedBy: "~")[0])
-        guard let startLine = startLine else { return nil }
-        
-        let endLine = Int(parts[3].components(separatedBy: "~")[1])
-        guard let endLine = endLine else { return nil }
-        
-        let distance = endLine - startLine
-        let series = Int(parts[4].components(separatedBy: "#")[0].dropFirst())
+        let series = Int(parts[1].dropFirst())
         guard let series = series else { return nil }
         
+        let odk = parts[2]
+        let down = (parts[3] == "D-" ? nil : Int(parts[3].components(separatedBy: "&")[0].suffix(1)))
+        let distance = down != nil ? Int(parts[3].components(separatedBy: "&")[1]) : 0
+        guard let distance = distance else { return nil }
+        
+        let startLine = Int(parts[4].components(separatedBy: "~")[0])
+        guard let startLine = startLine else { return nil }
+        
+        let endLine = Int(parts[4].components(separatedBy: "~")[1])
+        guard let endLine = endLine else { return nil }
+        
+        let gain = Int(parts[5].dropFirst())
+        guard let gain = gain else { return nil }
+                
         let play = PlayData(
             quarter: quarter,
             odk: odk,
@@ -60,8 +65,10 @@ struct PlayPhoto: Identifiable {
             distance: distance,
             startLine: startLine,
             endLine: endLine,
+            gain: gain,
             series: series,
-            flagged: flagged
+            flagged: flagged,
+            id: id
         )
         
         return PlayPhoto(play: play, idx: idx, pic: img)

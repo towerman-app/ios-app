@@ -16,7 +16,7 @@ struct SettingsView: View {
     @FocusState private var focus: SettingsFocus?
     @EnvironmentObject var userAuth: UserAuthModel
     @EnvironmentObject var server: ServerModel
-
+    
     // Settings
     @State private var name = ""
     

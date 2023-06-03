@@ -8,8 +8,8 @@
 import Foundation
 import SwiftUI
 
-//private let serverUrl = "https://266c-2604-3d09-57c-ea00-d1d-9f3d-e5e2-6de2.ngrok-free.app"
-//private let websocketUrl = "ws://266c-2604-3d09-57c-ea00-d1d-9f3d-e5e2-6de2.ngrok-free.app"
+//private let serverUrl = "https://937e-199-216-105-26.ngrok-free.app"
+//private let websocketUrl = "wss://937e-199-216-105-26.ngrok-free.app"
 
 private let serverUrl = "http://localhost:3001"
 private let websocketUrl = "ws://localhost:3001"
@@ -284,6 +284,7 @@ class ServerModel: ObservableObject {
         case Event.end_game.rawValue:
             if success {
                 teams?.endGame()
+                photoCache?.clear()
             } else {
                 self.addError(json["error"] as? String)
             }
@@ -370,9 +371,10 @@ class ServerModel: ObservableObject {
                 guard let base64 = json["photo"] as? String else { return }
                 guard let photoData = Data(base64Encoded: base64) else { return }
 
-//                print(name)
+                print(name)
                 let playPhoto = PlayPhoto.parse(name: name, photo: photoData)
                 guard let playPhoto = playPhoto else { return }
+                
                 photoCache?.add(playPhoto)
             } else {
                 guard let name = json["play"] as? String else { return }

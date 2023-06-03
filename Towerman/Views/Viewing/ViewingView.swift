@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import RangeUISlider
 
 struct ViewingView: View {
     @Binding var screen: AppScreen
@@ -15,12 +16,12 @@ struct ViewingView: View {
         
     @State private var inFiltersDrawer = false
     @State private var expandedPlay: SeriesPlay? = nil
-    
+        
     var body: some View {
         ZStack {
             ScrollView(showsIndicators: false) {
                 LazyVStack(spacing: 48) {
-                    ForEach(photoCache.photos.reversed()) { series in
+                    ForEach(photoCache.filtered.reversed()) { series in
                         SeriesRow(series: series, expanded: $expandedPlay)
 
                     }
@@ -89,6 +90,17 @@ private struct FilterDrawerView: View {
     @Binding var isActive: Bool
     
     @State private var offset: CGFloat = 0
+    
+    @State private var odk: Array<String> = []
+    @State private var quarter: Array<String> = []
+    @State private var down: Array<String> = []
+    @State private var isFlagged = false
+    
+    @State private var gain = ClosedRange(uncheckedBounds: (-30, 99))
+    @State private var distance = ClosedRange(uncheckedBounds: (-1, 1))
+    
+    @EnvironmentObject var photoCache: PhotoCache
+        
     var body: some View {
             ZStack {
                 
@@ -111,22 +123,85 @@ private struct FilterDrawerView: View {
                     .padding(.trailing, 8)
                     
                     if isActive {
-                        VStack {
-                            QuarterButtons()
+                        VStack(spacing: 0) {
+                            
+                            Group {
+                                FilterButtons(title: "ODK", buttons: ["O", "D", "K"], selected: $odk)
+                                    .onChange(of: odk) { newValue in
+                                        photoCache.filter(odk: newValue)
+                                    }
+                                
+//                                Spacer()
+                                
+                                FilterButtons(title: "Quarter", buttons: ["1", "2", "3", "4"], selected: $quarter)
+                                    .onChange(of: quarter) { newValue in
+                                        photoCache.filter(quarter: newValue)
+                                    }
+                                
+//                                Spacer()
+                                
+                                FilterButtons(title: "Down", buttons: ["1st", "2nd", "3rd"], selected: $down)
+                                    .onChange(of: down) { newValue in
+                                        photoCache.filter(down: newValue)
+                                    }
+                                
+//                                Spacer()
+                                
+                                SlideRange(title: "Gain", value: $gain, range: ClosedRange(uncheckedBounds: (-30, 99)))
+                                    .onChange(of: gain) { newValue in
+                                        photoCache.filter(gain: newValue)
+                                    }
+                                
+//                                Spacer()
+                                
+                                SlideRange(title: "Distance", value: $distance, range: ClosedRange(uncheckedBounds: (-1, 1)))
+                                    .onChange(of: distance) { newValue in
+                                        photoCache.filter(distance: newValue)
+                                    }
+                                
+                            }
+                            
+//                            Spacer()
+                            
+                            if UIDevice.isIPad {
+                                FlagButton(selected: $isFlagged, full: true)
+                                    .onChange(of: isFlagged) { newValue in
+                                        photoCache.filter(isFlagged: newValue)
+                                    }
+                            }
+                            
                             Spacer()
                             
-                            Button(action: {}) {
-                                Text("Clear Filters")
-                                    .foregroundColor(.white)
-                                    .fontWeight(.semibold)
-                                    .padding(8)
-                                    .background(AppColors.secondary)
-                                    .cornerRadius(8)
+                            HStack {
+                                if !UIDevice.isIPad {
+                                    FlagButton(selected: $isFlagged, full: false)
+                                        .onChange(of: isFlagged) { newValue in
+                                            photoCache.filter(isFlagged: newValue)
+                                        }
+                                }
+
+                                Button(action: {
+                                    withAnimation(Animation.linear(duration: 0.2)) {
+                                        odk = []
+                                        quarter = []
+                                        down = []
+                                        isFlagged = false
+                                        gain = ClosedRange(uncheckedBounds: (-30, 99))
+                                        distance = ClosedRange(uncheckedBounds: (-1, 1))
+                                    }
+                                    photoCache.filter()
+                                }) {
+                                    Text("Clear Filters".uppercased())
+                                        .foregroundColor(.white)
+                                        .fontWeight(.bold)
+                                        .padding(12)
+                                        .background(AppColors.secondary)
+                                        .cornerRadius(8)
+                                }
                             }
                         }
-                        .frame(maxHeight: .infinity)
+                        .frame(maxWidth: UIScreen.screenWidth / 3, maxHeight: .infinity)
                         .padding(.vertical, 8)
-                        .padding(.horizontal, 32)
                         .background(AppColors.primary)
                         .cornerRadius(8)
                         .padding(16)
@@ -151,36 +226,243 @@ private struct FilterDrawerView: View {
         }
     }
     
-    private struct QuarterButtons: View {
-        @State var selected: String = ""
+    private struct SlideRange: View {
+        let title: String
+        @Binding var value: ClosedRange<Int>
+        let range: ClosedRange<Int>
+        
+        @State var lower: CGFloat = 0
+        @State var upper: CGFloat = 0
+        
         var body: some View {
             VStack {
-                HStack {
-                    QButton(title: "Q1", selected: $selected)
-                    QButton(title: "Q2", selected: $selected)
-                }
-                HStack {
-                    QButton(title: "Q3", selected: $selected)
-                    QButton(title: "Q4", selected: $selected)
-                }
+                Text(title.uppercased())
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.leading, 12)
+                    .padding(.bottom, 4)
+                
+                
+                RangeSliderView(value: $value, bounds: range)
             }
+            .padding(.horizontal, 10)
+            .padding(.bottom, UIDevice.isIPad ? 32 : 0)
+
+        }
+    }
+    
+    private struct RangeSliderView: View {
+        @Binding var value: ClosedRange<Int>
+        let bounds: ClosedRange<Int>
+        
+        @State private var viewSize = CGSize(width: 0, height: 0)
+        
+        @State private var leftX: CGFloat = 11
+        
+        var body: some View {
+            let pixelsPerStep = (viewSize.width - 22) / CGFloat(bounds.count - 1)
+            let offset = -bounds.lowerBound
+            ZStack {
+                
+                GeometryReader { geo in
+                    Color.clear
+                        .onAppear {
+                            viewSize = geo.size
+                        }
+                }
+                
+                // Line
+                Rectangle()
+                    .foregroundColor(AppColors.contrast)
+                    .frame(width: viewSize.width, height: 6)
+                    .cornerRadius(4)
+                    .overlay {
+                        // Left
+                        slider(
+                            bounds: bounds,
+                            pixelsPerStep: pixelsPerStep,
+                            offset: offset,
+                            viewMid: viewSize.height / 2,
+                            value: $value,
+                            isLower: true
+                        )
+                        
+                        // Right
+                        slider(
+                            bounds: bounds,
+                            pixelsPerStep: pixelsPerStep,
+                            offset: offset,
+                            viewMid: viewSize.height / 2,
+                            value: $value,
+                            isLower: false
+                        )
+                    }
+
+            }
+            .frame(maxHeight: 32)
+
+        }
+        
+        private struct slider: View {
+            let bounds: ClosedRange<Int>
+            let pixelsPerStep: CGFloat
+            let offset: Int
+            let viewMid: CGFloat
+            @Binding var value: ClosedRange<Int>
+            let isLower: Bool
+            @State private var sliderX: CGFloat = 11
+            @State private var recentMove = false
+            @State private var hideNow = false
+            
+            
+            var body: some View {
+                if hideNow {
+                    Color.clear
+                } else {
+                    Circle()
+                        .foregroundColor(isLower ? Color(red: 0.5, green: 0.1, blue: 0.15) : Color(red: 0.7, green: 0.15, blue: 0.25))
+                        .frame(width: 22, height: 22)
+                        .position(x: sliderX, y: 3)
+                        .highPriorityGesture(DragGesture()
+                            .onChanged({ drag in
+                                var location = Int(round((drag.location.x - 11) / pixelsPerStep)) - offset
+                                location = max(isLower ? bounds.lowerBound : value.lowerBound + 1, min(isLower ? value.upperBound - 1 : bounds.upperBound, location))
+                                
+                                value = isLower ? location...value.upperBound : value.lowerBound...location
+                                sliderX = CGFloat((isLower ? value.lowerBound : value.upperBound) + offset) * pixelsPerStep + 11
+                                
+                                if !recentMove {
+                                    withAnimation(Animation.linear(duration: 0.2)) {
+                                        recentMove = true
+                                    }
+                                    
+                                    withAnimation(Animation.linear(duration: 0.2).delay(1)) {
+                                        recentMove = false
+                                    }
+                                }
+                            })
+                        )
+                        .onChange(of: pixelsPerStep) { pix in
+                            sliderX = CGFloat((isLower ? value.lowerBound : value.upperBound) + offset) * pix + 11
+                        }
+                        .onChange(of: value) { _ in
+                            let v = isLower ? value.lowerBound : value.upperBound
+                            sliderX = CGFloat(v + offset) * pixelsPerStep + 11
+                        }
+                        .overlay {
+                            let half = (bounds.upperBound + offset) / 2
+                            
+                            let lowerCase: Bool = isLower && (value.upperBound + offset) > half
+                            let upperCase: Bool = !isLower && (value.lowerBound + offset) < half
+                            
+                            let lowerOut = min(sliderX, (pixelsPerStep * CGFloat(value.upperBound + offset)) - 10)
+                            let upperOut = max(sliderX, (pixelsPerStep * CGFloat(value.lowerBound + offset)) + 40)
+                            
+                            let x = lowerCase ? lowerOut : upperCase ? upperOut : sliderX
+
+                            
+                            Text(String(isLower ? value.lowerBound : value.upperBound))
+                                .opacity(recentMove ? 1 : 0.5)
+                                .scaleEffect(recentMove ? 1.5 : 1)
+                                .font(.system(size: 12, weight: .bold))
+                                .padding(8)
+                                .background(.black.opacity(recentMove ? 1 : 0))
+                                .cornerRadius(4)
+                                .position(x: x, y: 3 - (UIDevice.isIPad ? (recentMove ? 28 : 18) : (recentMove ? 25 : 0)))
+//                                .position(x: x, y: viewMid)
+                        }
+                        .zIndex((!isLower && value.upperBound == bounds.upperBound) ? 0 : 2)
+                }
+
+            }
+        }
+    }
+    
+    private struct FlagButton: View {
+        @Binding var selected: Bool
+        let full: Bool
+        var body: some View {
+            Button(action: { selected = !selected } ) {
+                Image(systemName: selected ? "flag" : "flag.slash")
+                    .resizable()
+                    .frame(width: 18, height: 18)
+                    .padding(12)
+                    .frame(maxWidth: full ? .infinity : nil)
+                    .foregroundColor(.white)
+                    .background(selected ? AppColors.secondary : AppColors.contrast)
+                    .cornerRadius(8)
+                    .shadow(color: .black.opacity(selected ? 0.4 : 0), radius: 8)
+                    .padding(.horizontal, 10)
+                    .padding(.bottom, UIDevice.isIPad ? 32 : 0)
+            }
+        }
+    }
+    
+    private struct FilterButtons: View {
+        let title: String
+        let buttons: Array<String>
+        
+        @Binding var selected: Array<String>
+        
+        @State private var fullWidth: CGFloat = 0
+        var body: some View {
+            VStack(spacing: 0) {
+                Text(title.uppercased())
+                    .font(.system(size: 16, weight: .bold))
+                    .foregroundColor(.white)
+                    .padding(.leading, 12)
+                
+                HStack(spacing: 0) {
+                    ForEach(buttons, id: \.self) { button in
+                        QButton(title: button, selected: $selected, width: (fullWidth  / CGFloat(buttons.count)) - 8)
+                            .padding(4)
+                    }
+                }
+                
+                GeometryReader { geo in
+                    Color.clear
+                        .onAppear {
+                            fullWidth = geo.size.width
+                        }
+                }
+                .frame(height: 0)
+            }
+            .padding(.horizontal, 6)
+            .padding(.bottom, UIDevice.isIPad ? 32 : 0)
         }
     }
     
     private struct QButton: View {
         let title: String
-        @Binding var selected: String
+        @Binding var selected: Array<String>
+        let width: CGFloat
+        let isIcon: Bool = false
         var body: some View {
+            
+            let isSelected = selected.contains { x in x == title }
             Button(action: {
-                selected = (selected == title ? "" : title)
+                if isSelected {
+                    selected.removeAll { x in x == title }
+                } else {
+                    selected.append(title)
+                }
             }) {
-                Text(title)
-                    .foregroundColor(.white)
-                    .fontWeight(.bold)
-                    .padding(16)
-                    .background(selected == title ? AppColors.secondary : AppColors.contrast)
-                    .cornerRadius(8)
-                    .shadow(radius: selected == title ? 6 : 2)
+                Group {
+                    if isIcon {
+                        Image(systemName: title)
+                    } else {
+                        Text(title)
+                            .font(.system(size: 14))
+                    }
+                }
+                .foregroundColor(.white)
+                .fontWeight(.bold)
+                .padding(8)
+                .padding(.vertical, UIDevice.isIPad ? 8 : 0)
+                .frame(width: (width == .infinity || width < 0 ? 10 : width))
+                .background(isSelected ? AppColors.secondary : AppColors.contrast)
+                .cornerRadius(8)
+                .shadow(radius: isSelected ? 6 : 2)
             }
         }
     }
@@ -200,7 +482,7 @@ private struct SeriesRow: View {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
                     ForEach(series.plays) { play in
-                        PlayView(name: "\(play.play.down?.fancy() ?? "-") & ? @ \(play.play.startLine) | \(play.play.odk)", img: play.photos[0]) {
+                        PlayView(name: "\(play.play.down?.fancy() ?? "-") & \(play.play.distance) @ \(play.play.startLine) | \(play.play.odk) | Gain \(play.play.gain)", img: play.photos[0]) {
                             expanded = play
                         }
                             .transition(.opacity)

@@ -145,11 +145,11 @@ struct ExpandedPlayView: View {
                     }
                                         
                 }
-                .fontWeight(.bold)
+                .font(.system(size: 16, weight: .bold))
                 .padding(8)
                 .background(.black.opacity(0.5))
                 .padding(12)
-                .frame(maxWidth: UIScreen.screenWidth * 0.6)
+                .frame(maxWidth: UIScreen.screenWidth * 0.7)
                 
                 Spacer()
             }

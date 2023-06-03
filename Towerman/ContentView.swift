@@ -9,6 +9,7 @@ import SwiftUI
 import FirebaseAuth
 
 struct ContentView: View {
+//    @State private var screen: AppScreen = .viewing
     @State private var screen: AppScreen = .myTeams
     @State private var inMyTeamsView = false
     

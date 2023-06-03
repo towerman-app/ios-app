@@ -30,6 +30,8 @@ struct TaggingView: View {
     @State private var endLine: Int = 1  // (-49)-50
     @State private var series: Int = 1  // 1+
     
+//    @State private var lastOdk = "K"
+//    @State private var wasKick = true
     
     @State private var photos: [PlayData.PlayPhoto] = []
     
@@ -41,6 +43,21 @@ struct TaggingView: View {
             
             // ODK
             TapSelectView<String>(title: "ODK", options: ["O", "D", "K"], selected: $taggingManager.play.odk, nulled: nil)
+                .onChange(of: taggingManager.play.odk) { odk in
+//                    if wasKick {
+//
+//                    }
+//                    if lastOdk == "K" {
+//                        taggingManager.modify(down: 1, distance: 10, series: taggingManager.play.series + 1)
+//                    }
+//
+//                    if odk == "K" {
+//                        wasKick = true
+//                    } else {
+//                        wasKick = false
+//                        lastOdk = odk
+//                    }
+                }
 
             // Down
             TapSelectView<Int>(title: "DN", options: [1, 2, 3], selected: $taggingManager.play.down, nulled: -1)
@@ -50,17 +67,16 @@ struct TaggingView: View {
             // Distance & Series
             VStack {
                 
-                NumberSelectView(title: "DIST", value: $distance, pad: $numberPadFor, selected: .distance)
+                NumberSelectView(title: "DIST", value: taggingManager.play.distance, pad: $numberPadFor, selected: .distance)
                 
-                NumberSelectView(title: "ST LN", value: $startLine, pad: $numberPadFor, selected: .startLine)
+                NumberSelectView(title: "ST LN", value: taggingManager.play.startLine, pad: $numberPadFor, selected: .startLine)
                 
-                
-                NumberSelectView(title: "END LN", value: $endLine, pad: $numberPadFor, selected: .endLine)
+                NumberSelectView(title: "END LN", value: taggingManager.play.endLine, pad: $numberPadFor, selected: .endLine)
             }
             .padding(.vertical, 32)
             
             VStack {
-                NumberSelectView(title: "SERIES", value: $series, pad: $numberPadFor, selected: .series)
+                NumberSelectView(title: "SERIES", value: taggingManager.play.odk == "K" ? nil : taggingManager.play.series, pad: $numberPadFor, selected: .series)
                 
                 FlagSelectView(selected: $taggingManager.play.flagged)
                 
@@ -80,7 +96,11 @@ struct TaggingView: View {
 #endif
                 }
                 Spacer()
-                
+                Button("Next Play") {
+                    withAnimation(Animation.linear(duration: 0.1)) {
+                        taggingManager.nextPlay()
+                    }
+                }
                 if !photos.isEmpty {
                     CTAButton(
                         title: "UPLOAD",
@@ -102,9 +122,11 @@ struct TaggingView: View {
                             hapticFeedback(style: .heavy)
                         }
                         
-                        // Animation
+                        
+                        // Animation and automation (kys)
                         withAnimation(Animation.linear(duration: 0.1)) {
                             uploadAnimation = 0.95
+                            taggingManager.nextPlay()
                         }
                         DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                             withAnimation(Animation.linear(duration: 0.1)) {
