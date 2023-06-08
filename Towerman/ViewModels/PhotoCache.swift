@@ -132,7 +132,7 @@ struct Filters {
         self.quarter = quarter ?? []
         self.down = down ?? []
         self.gain = gain ?? ClosedRange(uncheckedBounds: (-30, 99))
-        self.distance = distance ?? ClosedRange(uncheckedBounds: (-1, 1))
+        self.distance = distance ?? ClosedRange(uncheckedBounds: (1, 30))
         self.isFlagged = isFlagged ?? false
     }
     
@@ -169,7 +169,9 @@ struct Filters {
         
         // MARK: Probably need to change this
         print("remember to change PhotoCache:Filter:match")
-//        if play.distance < distance.lowerBound || play.distance > distance.upperBound { return false }
+        print(play.distance)
+        print(play.gain)
+        if play.distance < (distance.lowerBound == 1 ? -10 : distance.lowerBound) || play.distance > (distance.upperBound == 30 ? 1000 : distance.upperBound) { return false }
         
         if isFlagged && !play.flagged { return false }
         

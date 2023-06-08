@@ -96,11 +96,11 @@ struct TaggingView: View {
 #endif
                 }
                 Spacer()
-                Button("Next Play") {
-                    withAnimation(Animation.linear(duration: 0.1)) {
-                        taggingManager.nextPlay()
-                    }
-                }
+//                Button("Next Play") {
+//                    withAnimation(Animation.linear(duration: 0.1)) {
+//                        taggingManager.nextPlay()
+//                    }
+//                }
                 if !photos.isEmpty {
                     CTAButton(
                         title: "UPLOAD",

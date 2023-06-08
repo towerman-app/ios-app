@@ -38,15 +38,18 @@ struct PlayPhoto: Identifiable {
         let flagged = name.contains("FLAGGED")
         let parts = name.components(separatedBy: "_")
         
+        // Q1_S1_O_D0&0_-45~0_G65_#1-1.png
         let quarter = Int(parts[0].suffix(1))
         guard let quarter = quarter else { return nil }
         
-        let series = Int(parts[1].dropFirst())
+        let series = parts[1] == "S-" ? 0 : Int(parts[1].dropFirst())
+        
         guard let series = series else { return nil }
         
         let odk = parts[2]
         let down = (parts[3] == "D-" ? nil : Int(parts[3].components(separatedBy: "&")[0].suffix(1)))
         let distance = down != nil ? Int(parts[3].components(separatedBy: "&")[1]) : 0
+        
         guard let distance = distance else { return nil }
         
         let startLine = Int(parts[4].components(separatedBy: "~")[0])
@@ -68,7 +71,7 @@ struct PlayPhoto: Identifiable {
             gain: gain,
             series: series,
             flagged: flagged,
-            id: id
+            id: 0
         )
         
         return PlayPhoto(play: play, idx: idx, pic: img)

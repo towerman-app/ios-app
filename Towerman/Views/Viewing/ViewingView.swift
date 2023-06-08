@@ -97,7 +97,7 @@ private struct FilterDrawerView: View {
     @State private var isFlagged = false
     
     @State private var gain = ClosedRange(uncheckedBounds: (-30, 99))
-    @State private var distance = ClosedRange(uncheckedBounds: (-1, 1))
+    @State private var distance = ClosedRange(uncheckedBounds: (1, 30))
     
     @EnvironmentObject var photoCache: PhotoCache
         
@@ -154,7 +154,7 @@ private struct FilterDrawerView: View {
                                 
 //                                Spacer()
                                 
-                                SlideRange(title: "Distance", value: $distance, range: ClosedRange(uncheckedBounds: (-1, 1)))
+                                SlideRange(title: "Distance", value: $distance, range: ClosedRange(uncheckedBounds: (1, 30)))
                                     .onChange(of: distance) { newValue in
                                         photoCache.filter(distance: newValue)
                                     }
@@ -187,7 +187,7 @@ private struct FilterDrawerView: View {
                                         down = []
                                         isFlagged = false
                                         gain = ClosedRange(uncheckedBounds: (-30, 99))
-                                        distance = ClosedRange(uncheckedBounds: (-1, 1))
+                                        distance = ClosedRange(uncheckedBounds: (1, 30))
                                     }
                                     photoCache.filter()
                                 }) {

@@ -90,6 +90,11 @@ struct ContentView: View {
             }
         }
         .onAppear {
+            // Forever
+            Task {
+                await server.sendPing()
+            }
+            
             Auth.auth().addStateDidChangeListener { auth, user in
                 if user != nil {
                     loadTeams()

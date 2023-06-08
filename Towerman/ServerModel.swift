@@ -11,8 +11,11 @@ import SwiftUI
 //private let serverUrl = "https://937e-199-216-105-26.ngrok-free.app"
 //private let websocketUrl = "wss://937e-199-216-105-26.ngrok-free.app"
 
-private let serverUrl = "http://localhost:3001"
-private let websocketUrl = "ws://localhost:3001"
+//private let serverUrl = "http://localhost:3001"
+//private let websocketUrl = "ws://localhost:3001"
+
+private let serverUrl = "https://towerman.app"
+private let websocketUrl = "wss://towerman.app"
 
 class ServerModel: ObservableObject {
     private var teams: TeamsManager? = nil
@@ -33,6 +36,22 @@ class ServerModel: ObservableObject {
     
     func setPhotoCache(cache: PhotoCache) {
         self.photoCache = cache
+    }
+    
+    func sendPing() async {
+        while true {
+            do {
+                if isConnected {
+                    try await webSocketTask?.send(.string("{ \"event\": \"ping\" }"))
+                }
+                
+                try? await Task.sleep(nanoseconds: 5 * 1_000_000_000)
+            }
+            catch {
+                print("Error on ping... (doesn't matter)")
+            }
+            
+        }
     }
     
     func signIn(email: String, name: String, token: String, onComplete: @escaping (Result<Any?>) -> Void) {
