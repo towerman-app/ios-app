@@ -106,6 +106,7 @@ struct ModeSelectView: View {
                     }
                     Button("Confirm", role: .destructive) {
                         server.endGame()
+                        server.photoCache?.clear()
                     }
                 }
                 

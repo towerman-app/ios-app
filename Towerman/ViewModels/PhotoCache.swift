@@ -5,6 +5,10 @@
 //  Created by Noah Azzaria-Byrne on 2023-05-07.
 //
 
+// After kick, on odk change (not k), increase series
+// Kickoff should be s0, others should match plays
+
+
 import Foundation
 import SwiftUI
 
@@ -19,6 +23,8 @@ class PhotoCache: ObservableObject {
     func clear() {
         self.names = [];
         self.photos = [];
+        self.filtered = [];
+        self.filters = Filters()
     }
     
     func filter(
@@ -76,9 +82,9 @@ class PhotoCache: ObservableObject {
             
             DispatchQueue.main.async {
                 self.photos.append(series)
-                withAnimation(Animation.linear(duration: 0.2)) {
+//                withAnimation(Animation.linear(duration: 0.2)) {
                     self.filter()
-                }
+//                }
             }
             return
         }
@@ -89,18 +95,18 @@ class PhotoCache: ObservableObject {
             DispatchQueue.main.async {
                 self.photos[seriesIdx].plays.append(play)
                 
-                withAnimation(Animation.linear(duration: 0.2)) {
+//                withAnimation(Animation.linear(duration: 0.2)) {
                     self.filter()
-                }
+//                }
             }
             return
         }
         DispatchQueue.main.async {
             self.photos[seriesIdx].plays[playIdx].photos.append(photo.pic)
             
-            withAnimation(Animation.linear(duration: 0.2)) {
+//            withAnimation(Animation.linear(duration: 0.2)) {
                 self.filter()                
-            }
+//            }
         }
     }
 }

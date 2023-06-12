@@ -28,7 +28,7 @@ class TaggingManager: ObservableObject {
             distance: 0,
             startLine: -45,
             endLine: 0,
-            series: 1,
+            series: 0,
             flagged: false)
         )
     }
@@ -51,7 +51,7 @@ class TaggingManager: ObservableObject {
             return
         }
         
-        let gain = play.gain()
+        let gain = play.gain() * (lastOdk == "O" ? 1 : -1)
         if gain < play.distance {
             if play.down == 3 {
                 // Change posession
@@ -71,6 +71,7 @@ class TaggingManager: ObservableObject {
             play.odk = lastOdk == "O" ? "D" : lastOdk == "D" ? "O" : "K"
             play.down = 1
             play.distance = 10
+            play.endLine *= -1
         }
         lastOdk = play.odk == "K" ? lastOdk : play.odk
         
@@ -105,7 +106,7 @@ class TaggingManager: ObservableObject {
     ) -> Play {
         // MARK: Add fancy logic here
         
-        play.series = max(series ?? play.series, 1)
+        play.series = max(series ?? play.series, 0)
         
         if let distance = distance {
             play.distance = distance

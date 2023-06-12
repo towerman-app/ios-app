@@ -97,6 +97,9 @@ struct CaptureView: View {
                     .frame(width: 65, height: 65, alignment: .center)
                     .scaleEffect(isCapturing ? 0.9 : 1)
             )
+            .padding(32)
+            .contentShape(Rectangle())
+            .padding(-32)
             .onTapGesture {
                 model.capturePhoto()
                 withAnimation(Animation.linear(duration: 0.1)) {

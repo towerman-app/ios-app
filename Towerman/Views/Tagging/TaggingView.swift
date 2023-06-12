@@ -28,10 +28,10 @@ struct TaggingView: View {
     @State private var distance: Int = 1  // 1-99
     @State private var startLine: Int = 1  // (-49)-50
     @State private var endLine: Int = 1  // (-49)-50
-    @State private var series: Int = 1  // 1+
+    @State private var series: Int = 0  // 1+
     
-//    @State private var lastOdk = "K"
-//    @State private var wasKick = true
+    @State private var lastOdk = "K"
+    @State private var wasKick = true
     
     @State private var photos: [PlayData.PlayPhoto] = []
     
@@ -47,15 +47,15 @@ struct TaggingView: View {
 //                    if wasKick {
 //
 //                    }
-//                    if lastOdk == "K" {
-//                        taggingManager.modify(down: 1, distance: 10, series: taggingManager.play.series + 1)
-//                    }
-//
+                    if odk != "K" {
+                        taggingManager.modify(down: 1, distance: 10, series: taggingManager.play.series + 1)
+                    }
+
+                    lastOdk = odk
 //                    if odk == "K" {
 //                        wasKick = true
 //                    } else {
 //                        wasKick = false
-//                        lastOdk = odk
 //                    }
                 }
 
@@ -76,7 +76,7 @@ struct TaggingView: View {
             .padding(.vertical, 32)
             
             VStack {
-                NumberSelectView(title: "SERIES", value: taggingManager.play.odk == "K" ? nil : taggingManager.play.series, pad: $numberPadFor, selected: .series)
+                NumberSelectView(title: "SERIES", value: taggingManager.play.series, pad: $numberPadFor, selected: .series)
                 
                 FlagSelectView(selected: $taggingManager.play.flagged)
                 
@@ -96,11 +96,11 @@ struct TaggingView: View {
 #endif
                 }
                 Spacer()
-//                Button("Next Play") {
-//                    withAnimation(Animation.linear(duration: 0.1)) {
-//                        taggingManager.nextPlay()
-//                    }
-//                }
+                Button("Next Play") {
+                    withAnimation(Animation.linear(duration: 0.1)) {
+                        taggingManager.nextPlay()
+                    }
+                }
                 if !photos.isEmpty {
                     CTAButton(
                         title: "UPLOAD",

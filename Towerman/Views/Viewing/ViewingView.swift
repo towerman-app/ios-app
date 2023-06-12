@@ -20,7 +20,7 @@ struct ViewingView: View {
     var body: some View {
         ZStack {
             ScrollView(showsIndicators: false) {
-                LazyVStack(spacing: 48) {
+                LazyVStack(spacing: 24) {
                     ForEach(photoCache.filtered.reversed()) { series in
                         SeriesRow(series: series, expanded: $expandedPlay)
 

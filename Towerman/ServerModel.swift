@@ -20,7 +20,7 @@ private let websocketUrl = "wss://towerman.app"
 class ServerModel: ObservableObject {
     private var teams: TeamsManager? = nil
     private var uploads: UploadManager? = nil
-    private var photoCache: PhotoCache? = nil
+    var photoCache: PhotoCache? = nil
     @Published var isConnected = false
     @Published var errorStack: Array<String> = []
     
@@ -353,8 +353,8 @@ class ServerModel: ObservableObject {
             break
             
         case Event.stop_capturing.rawValue:
+            teams?.setCapturing(to: false)
             if success {
-                teams?.setCapturing(to: false)
             } else {
                 self.addError(json["error"] as? String)
             }
